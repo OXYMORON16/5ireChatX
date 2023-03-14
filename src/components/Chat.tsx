@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Message } from "../types";
 import ChatBubble from "./ChatBubble";
 import { ethers } from "ethers";
@@ -12,6 +12,44 @@ const Chat = ({ account, chatContract }: Props) => {
   const [textareaContent, setTextareaContent] = useState("");
   const [txnStatus, setTxnStatus] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>();
+
+  const getMessages = async () => {
+    // ...
+  };
+
+  // Listen to new message posted
+  const setupMessageListener = (): ethers.Contract | void => {
+    if (!chatContract) return;
+
+    // .on("EVENT_NAME", callback) to listen to an event
+    const msgListener = chatContract.on(
+      "NewMessage",
+      (address, timestamp, content, _style) => {
+        // When a new message is posted, update our "messages" state with "setMessages"
+        setMessages((prev) => {
+          const newMessage = {
+            address,
+            date: timestamp._hex,
+            content,
+          };
+          return prev ? [...prev, newMessage] : [newMessage];
+        });
+      }
+    );
+
+    return msgListener;
+  };
+
+  const sendMessage = async () => {
+    // ...
+  };
+
+  useEffect(() => {
+    if (!chatContract || messages) return;
+    getMessages();
+    // Don't forget to call our listener here
+    setupMessageListener();
+  }, [chatContract]);
 
   return (
     <div className="chat">
@@ -47,7 +85,7 @@ const Chat = ({ account, chatContract }: Props) => {
               setTextareaContent(e.target.value);
             }}
           ></textarea>
-          <button disabled={!!txnStatus || !account}>
+          <button onClick={sendMessage} disabled={!!txnStatus || !account}>
             {txnStatus || "send message"}
           </button>
         </div>

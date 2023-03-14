@@ -1,4 +1,6 @@
 import React from "react";
+import { ethers } from "ethers";
+import useIsMetaMaskInstalled from "../useIsMetaMaskInstalled";
 
 interface Props {
   setAccount: React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -6,7 +8,17 @@ interface Props {
 }
 
 const Sidebar = ({ setAccount, account }: Props) => {
-  const isMetaMaskInstalled = false;
+  const isMetaMaskInstalled = useIsMetaMaskInstalled();
+
+  // Handle connection to MetaMask
+  const handleOnConnect = () => {
+    window.ethereum
+      .request({ method: "eth_requestAccounts" })
+      .then((accounts: string[]) => {
+        setAccount(ethers.utils.getAddress(accounts[0]));
+      })
+      .catch((err: any) => console.log(err));
+  };
 
   return (
     <div className="sidebar">
@@ -18,7 +30,10 @@ const Sidebar = ({ setAccount, account }: Props) => {
         </>
       )}
       {!account && (
-        <button disabled={!isMetaMaskInstalled}>Connect With MetaMask</button>
+        // And don't forget to bind the onClick on our connection button
+        <button onClick={handleOnConnect} disabled={!isMetaMaskInstalled}>
+          Connect With MetaMask
+        </button>
       )}
       {!isMetaMaskInstalled && <p>Please install MetaMask</p>}
     </div>
